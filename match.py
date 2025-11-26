@@ -1,5 +1,6 @@
 from typing import List, Tuple
 from pathlib import Path
+import csv
 
 def read_names(filename: str = "names.txt") -> List[str]:
     """Read one name per line from filename. Ignores empty lines."""
@@ -10,6 +11,32 @@ def read_names(filename: str = "names.txt") -> List[str]:
     if len(names) % 2 != 0:
         raise ValueError(f"Number of names must be even, got {len(names)}.")
     return names
+
+# takes in a csv file with name, id, and MBTI columns
+# outputs dict of id to (name, MBTI)
+def read_names_from_csv(filename: str = "names.csv") -> dict:
+    """Read names, ids, and MBTI types from a CSV file."""
+    data = {}
+    with open(filename, "r", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            name = row['name'].strip()
+            id = row['id'].strip()
+            mbti = row['MBTI'].strip()
+            if name and id:
+                data[id] = (name, mbti)
+    if len(data) == 0:
+        raise ValueError("CSV file is empty or improperly formatted.")
+    if len(data) % 2 != 0:
+        raise ValueError(f"Number of entries must be even, got {len(data)}.")
+    return data
+
+def mbti_similarity(a: str, b: str) -> int:
+    """Return similarity score between two MBTI types (0–4)."""
+    if len(a) != 4 or len(b) != 4:
+        return 0
+    return sum(1 for x, y in zip(a.upper(), b.upper()) if x == y)
+
 
 def generate_rounds(names: List[str], num_rounds: int) -> List[List[Tuple[str, str]]]:
     """
@@ -78,6 +105,7 @@ def write_round_to_markdown(round_index: int, pairs: List[Tuple[str, str]]):
 
 def main():
     names = read_names("names.txt")
+    data = read_names_from_csv("names.csv")
 
     # Set how many rounds you want:
     num_rounds = 5
@@ -104,6 +132,9 @@ def main():
     print("Markdown files generated:")
     for r in range(1, len(rounds) + 1):
         print(f"  round_{r}.md")
+    print(data)
+
+
 
 if __name__ == "__main__":
     main()
