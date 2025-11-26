@@ -1,5 +1,6 @@
 from typing import List, Tuple
 from pathlib import Path
+import csv
 
 def read_names(filename: str = "names.txt") -> List[str]:
     """Read one name per line from filename. Ignores empty lines."""
