@@ -31,6 +31,11 @@ def read_names_from_csv(filename: str = "names.csv") -> dict:
         raise ValueError(f"Number of entries must be even, got {len(data)}.")
     return data
 
+def mbti_similarity(a: str, b: str) -> int:
+    """Return similarity score between two MBTI types (0–4)."""
+    if len(a) != 4 or len(b) != 4:
+        return 0
+    return sum(1 for x, y in zip(a.upper(), b.upper()) if x == y)
 
 
 def generate_rounds(names: List[str], num_rounds: int) -> List[List[Tuple[str, str]]]:
