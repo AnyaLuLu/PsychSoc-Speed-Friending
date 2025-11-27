@@ -1,61 +1,38 @@
-from typing import List, Tuple
+# match.py
+
+from typing import List, Tuple, Dict
 from pathlib import Path
-import csv
+import random
 
-def read_names(filename: str = "names.txt") -> List[str]:
-    """Read one name per line from filename. Ignores empty lines."""
-    with open(filename, "r", encoding="utf-8") as f:
-        names = [line.strip() for line in f if line.strip()]
-    if len(names) == 0:
-        raise ValueError("names.txt is empty.")
-    if len(names) % 2 != 0:
-        raise ValueError(f"Number of names must be even, got {len(names)}.")
-    return names
-
-# takes in a csv file with name, id, and MBTI columns
-# outputs dict of id to (name, MBTI)
-def read_names_from_csv(filename: str = "names.csv") -> dict:
-    """Read names, ids, and MBTI types from a CSV file."""
-    data = {}
-    with open(filename, "r", encoding="utf-8") as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            name = row['name'].strip()
-            id = row['id'].strip()
-            mbti = row['MBTI'].strip()
-            if name and id:
-                data[id] = (name, mbti)
-    if len(data) == 0:
-        raise ValueError("CSV file is empty or improperly formatted.")
-    if len(data) % 2 != 0:
-        raise ValueError(f"Number of entries must be even, got {len(data)}.")
-    return data
-
-def mbti_similarity(a: str, b: str) -> int:
-    """Return similarity score between two MBTI types (0–4)."""
-    if len(a) != 4 or len(b) != 4:
-        return 0
-    return sum(1 for x, y in zip(a.upper(), b.upper()) if x == y)
+from config_loader import load_config, read_participants_from_csv
 
 
-def generate_rounds(names: List[str], num_rounds: int) -> List[List[Tuple[str, str]]]:
+# =======================
+# ROUND GENERATION
+# =======================
+
+def generate_rounds(ids: List[str], num_rounds: int) -> List[List[Tuple[str, str]]]:
     """
     Generate up to num_rounds of pairings using the round-robin (circle) method.
-    Assumes len(names) is even.
+    Uses IDs rather than names; you can map to names later.
 
-    - Total possible unique rounds = len(names) - 1
+    Assumes len(ids) is even.
+
+    - Total possible unique rounds = len(ids) - 1
     - We cap num_rounds at that maximum.
     """
-    n = len(names)
+    n = len(ids)
     if n < 2:
         return []
 
     max_rounds = n - 1
     if num_rounds > max_rounds:
-        print(f"Requested {num_rounds} rounds, but maximum with {n} names is {max_rounds}.")
+        print(
+            f"Requested {num_rounds} rounds, but maximum with {n} participants is {max_rounds}."
+        )
         num_rounds = max_rounds
 
-    players = list(names)
+    players = list(ids)
     fixed = players[0]
     others = players[1:]  # length n-1
 
@@ -78,14 +55,52 @@ def generate_rounds(names: List[str], num_rounds: int) -> List[List[Tuple[str, s
 
     return rounds
 
-def write_round_to_markdown(round_index: int, pairs: List[Tuple[str, str]]):
+
+# =======================
+# RANDOMIZATION HELPERS
+# =======================
+
+def randomize_pairs(
+    pairs: List[Tuple[str, str]],
+    enable: bool,
+) -> List[Tuple[str, str]]:
+    """
+    Optionally return a randomized copy of the pair list.
+    If enable is False, returns the pairs unchanged.
+    """
+    if not enable:
+        return pairs
+    shuffled = pairs[:]  # shallow copy
+    random.shuffle(shuffled)
+    return shuffled
+
+
+def scramble_ids(ids: List[str]) -> List[str]:
+    """
+    Scramble the order of participant IDs before generating rounds.
+    This ensures CSV order doesn't bias the pairing schedule.
+    """
+    shuffled = ids[:]  # shallow copy so we don't modify the original list
+    random.shuffle(shuffled)
+    return shuffled
+
+
+# =======================
+# OUTPUT (MARKDOWN + CONSOLE)
+# =======================
+
+def write_round_to_markdown(
+    round_index: int,
+    pairs: List[Tuple[str, str]],
+    participants: Dict[str, str],
+):
     """
     Write one round of pairings to a Markdown file named round_<n>.md.
     If the file exists, it is overwritten.
+
+    pairs are (id1, id2), participants maps id -> name
     """
     filename = Path(f"round_{round_index}.md")
-    # Delete first if it exists (not strictly necessary since we'll overwrite,
-    # but matches your request to delete if present).
     if filename.exists():
         filename.unlink()
 
@@ -94,46 +109,77 @@ def write_round_to_markdown(round_index: int, pairs: List[Tuple[str, str]]):
     lines.append("| Table # | Name 1 | Name 2 |")
     lines.append("|--------:|--------|--------|")
 
-    for table_num, (a, b) in enumerate(pairs, start=1):
-        # Escape pipe characters if they appear in names
-        a_escaped = a.replace("|", "\\|")
-        b_escaped = b.replace("|", "\\|")
-        lines.append(f"| {table_num} | {a_escaped} | {b_escaped} |")
+    for table_num, (id1, id2) in enumerate(pairs, start=1):
+        name1 = participants[id1].replace("|", "\\|")
+        name2 = participants[id2].replace("|", "\\|")
+        lines.append(f"| {table_num} | {name1} | {name2} |")
 
     content = "\n".join(lines) + "\n"
     filename.write_text(content, encoding="utf-8")
 
+
+def print_round_to_console(
+    round_index: int,
+    pairs: List[Tuple[str, str]],
+    participants: Dict[str, str],
+):
+    """
+    Pretty-print one round to the console in a table format.
+    """
+    print(f"Round {round_index}:")
+    print("-" * 60)
+    print(f"{'Table #':<8} {'Name 1':<24} {'Name 2':<24}")
+    print("-" * 60)
+
+    for table_num, (id1, id2) in enumerate(pairs, start=1):
+        name1 = participants[id1]
+        name2 = participants[id2]
+        print(f"{table_num:<8} {name1:<24} {name2:<24}")
+
+    print()  # blank line between rounds
+
+
+# =======================
+# MAIN
+# =======================
+
 def main():
-    names = read_names("names.txt")
-    data = read_names_from_csv("names.csv")
+    # Load config from YAML
+    cfg = load_config()
+    num_rounds = cfg["NUM_ROUNDS"]
+    enable_random = cfg["ENABLE_RANDOM_TABLE_RANDOMIZATION"]
+    random_seed = cfg["RANDOM_SEED"]
+    csv_filename = cfg["CSV_FILENAME"]
 
-    # Set how many rounds you want:
-    num_rounds = 5
+    if random_seed is not None:
+        random.seed(random_seed)
 
-    rounds = generate_rounds(names, num_rounds=num_rounds)
+    # Load participants from CSV
+    participants = read_participants_from_csv(csv_filename)
+    ids = list(participants.keys())
 
-    print(f"Total names: {len(names)}")
+    # Scramble the IDs before generating any matchings
+    scrambled_ids = scramble_ids(ids)
+
+    # Generate unique pairs per round from scrambled order
+    rounds = generate_rounds(scrambled_ids, num_rounds)
+
+    print(f"Total participants: {len(ids)}")
     print(f"Generated {len(rounds)} rounds of pairings.\n")
 
     for r, pairs in enumerate(rounds, start=1):
-        # Console output
-        print(f"Round {r}:")
-        print("-" * 40)
-        print(f"{'Table #':<8} {'Name 1':<20} {'Name 2':<20}")
-        print("-" * 40)
+        # Optional randomization of table order each round
+        display_pairs = randomize_pairs(pairs, enable_random)
 
-        for table_num, (a, b) in enumerate(pairs, start=1):
-            print(f"{table_num:<8} {a:<20} {b:<20}")
-        print()  # blank line between rounds
+        # Console output
+        print_round_to_console(r, display_pairs, participants)
 
         # Markdown output
-        write_round_to_markdown(r, pairs)
+        write_round_to_markdown(r, display_pairs, participants)
 
     print("Markdown files generated:")
     for r in range(1, len(rounds) + 1):
         print(f"  round_{r}.md")
-    print(data)
-
 
 
 if __name__ == "__main__":

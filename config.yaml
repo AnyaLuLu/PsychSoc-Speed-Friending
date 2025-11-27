@@ -1,0 +1,4 @@
+num_rounds: 5
+enable_random_table_randomization: true
+random_seed: null
+csv_filename: "names.csv"
