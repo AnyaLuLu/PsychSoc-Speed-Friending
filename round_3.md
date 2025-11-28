@@ -16,4 +16,4 @@
 | 12 | Jahniyah Gilbert | Nica Esguerra |
 | 13 | Pavithra Padmananthan | Divora Mehary |
 | 14 | Siddhartha Bhattacharjee | Celina Tran |
-| 15 | Emmanuela | Dylan Tan
+| 15 | Emmanuela | Dylan Tan |
