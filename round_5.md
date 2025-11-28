@@ -2,20 +2,19 @@
 
 | Table # | Name 1 | Name 2 |
 |--------:|--------|--------|
-| 1 | Luke Melendez | Divora Mehary |
-| 2 | Claire Elizabeth Mashregi | Alyssa Sobinski-Evison |
-| 3 | Farah Saad | Mona |
-| 4 | serah adil | Amy |
-| 5 | Abirami Sivakumar | Celina Tran |
-| 6 | Aisha Qureshi | Brian Au |
-| 7 | Leana mathew | emily |
-| 8 | Raheel Junaid | Jahniyah Gilbert |
-| 9 | Sameen Sange | Claire Hansen |
-| 10 | Skylissa Gray | Kyle Kraft |
-| 11 | Muna Hussen | Kailey To |
-| 12 | Nica Esguerra | Ahmar Khan |
-| 13 | Shreya Jain | Siddhartha Bhattacharjee |
-| 14 | Celina Tran | Pavithra Padmananthan |
-| 15 | Alyssa Alexander | Eya Phillips |
-| 16 | Magdalena Morrison | Anokhi Patel |
-| 17 | Ipsa Barot | Caleb Lee |
+| 1 | Raheel Junaid | Caleb Lee |
+| 2 | Ahmar Khan | Farah Saad |
+| 3 | Nica Esguerra | Anokhi Patel |
+| 4 | Divora Mehary | Ipsa Barot |
+| 5 | Alyssa Sobinski-Evison | Claire Elizabeth Mashregi |
+| 6 | emily | Muna Hussen |
+| 7 | Abirami Sivakumar | Celina Tran |
+| 8 | Siddhartha Bhattacharjee | Aisha Qureshi |
+| 9 | Luke Melendez | Magdalena Morrison |
+| 10 | serah adil | Celina Tran |
+| 11 | Jahniyah Gilbert | Leana mathew |
+| 12 | Pavithra Padmananthan | Sameen Sange |
+| 13 | Mona | Shreya Jain |
+| 14 | Eya Phillips | Brian Au |
+| 15 | Kailey To | Kyle Kraft |
+| 16 | Amy | Claire Hansen |
